@@ -1,0 +1,483 @@
+{
+  "name": "Hackathon copy",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// A mensagem do usuário vem do nó Webhook no caminho body.Body.\n// Capturamos a mensagem inteira, pois é o termo de busca semântica.\nconst inputMessage = $input.first().json.body.text.message; \n\n// Retorna um NOVO objeto JSON limpo para os próximos nós\nreturn [{\n  json: {\n    searchTerm: inputMessage \n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -512,
+        -48
+      ],
+      "id": "ec73fce4-e2b8-4f66-96dc-2c37e8e235d3",
+      "name": "Capturar Termo de Busca"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1-rtF4XVOoktuDxRvomywtuLBRmo7gV_TvqDGwS6TvpE",
+          "mode": "list",
+          "cachedResultName": "PL Teste",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-rtF4XVOoktuDxRvomywtuLBRmo7gV_TvqDGwS6TvpE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1474688525,
+          "mode": "list",
+          "cachedResultName": "relatorio_PL_2024",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-rtF4XVOoktuDxRvomywtuLBRmo7gV_TvqDGwS6TvpE/edit#gid=1474688525"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        416,
+        0
+      ],
+      "id": "741f2513-a056-4147-b090-0ffbfc5b7050",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pI3mbsBo58bLqh8q",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "x-ai/grok-4.1-fast:free",
+          "mode": "id"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "= ** RESPONDA EM PORTUGUES** Você é um especialista em direito constitucional. Sua única função é traduzir a lei.\n\nInstruções Cruciais:\n1. **PRIMEIRO, analise o TERMO DE BUSCA** ({{ $('Capturar Termo de Busca').item(0).json.searchTerm }}) e **FAÇA UMA BUSCA DE PALAVRA-CHAVE** dentro da LISTA DE LEIS (EMENTA_RESUMO e TIPO) para encontrar a **única lei mais relevante**.\n2. Se houver um termo exato ou similar ao \"cidadão solidário\", **ESCOLHA ESSA LEI**.\n3. **Sua Resposta Final** deve ser **APENAS** o resumo traduzido (máximo 4 parágrafos curtos) da lei que você selecionou.\n4. **NÃO** retorne o resumo do primeiro item da lista se ele não for relevante ao termo de busca.\n\nLISTA DE LEIS PARA ANÁLISE: \n{{ JSON.stringify($('Item Lists').all()) }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "2ca0cb51-0a4f-4480-a692-c2dcd0dc43d9",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "LM4LqH1F1xFNGauL",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        624,
+        0
+      ],
+      "id": "5f6764f8-357a-4c8b-bb02-071827b04ae3",
+      "name": "Item Lists"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.z-api.io/instances/3EA907A8167551B470100A71BB431498/token/9592D50F61CB437C47FD4B62/send-text",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "client-token",
+              "value": "F09e6c885611540e2ba16ed8b733a1621S"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "={{ $json.output[0].content[0].text }}"
+            },
+            {
+              "name": "phone",
+              "value": "={{ $('Webhook').item.json.body.phone }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1136,
+        0
+      ],
+      "id": "30fab14b-16a2-4b0f-88a8-591a762de18d",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "c1648516-3ee9-4fa0-b771-03f15232e13e",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -768,
+        -48
+      ],
+      "id": "1a8a39f5-96bb-419a-80d8-409ddc3b6219",
+      "name": "Webhook",
+      "webhookId": "c1648516-3ee9-4fa0-b771-03f15232e13e"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "08193874-c1d5-4760-8e76-2037ced48b46",
+              "leftValue": "={{ $json.output[0].content[0].text }}",
+              "rightValue": "começo conversa",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -64,
+        -144
+      ],
+      "id": "b085272c-7ca9-48a6-8999-d43195e60afe",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "=x-ai/grok-4.1-fast:free",
+          "mode": "id"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Interprete a mensagem do usuário  {{ $json.searchTerm }} e classifique-a seguindo somente uma das categorias abaixo:\n\nSe a mensagem for um cumprimento ou início de conversa (ex.: “oi”, “olá”, “boa tarde”, “bom dia”, “tudo bem?”), a saída deve ser: \"começo conversa\"\n\nSe a mensagem for uma dúvida sobre leis, PECs, votações, projetos de lei ou qualquer questão jurídico-política, a saída deve ser: \"duvida lei\"\n\nSe a mensagem perguntar como um deputado votou ou pedir o voto de algum parlamentar, a saída deve ser: \"voto deputado\"\n\nResponda apenas com uma dessas três opções:\ncomeço conversa, duvida lei, voto deputado."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2,
+      "position": [
+        -288,
+        -48
+      ],
+      "id": "7bb57aae-53b9-40a7-82ea-74000461cb41",
+      "name": "Message a model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "CA46JYXOBiMmVk1j",
+          "name": "OpenAi account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.z-api.io/instances/3EA907A8167551B470100A71BB431498/token/9592D50F61CB437C47FD4B62/send-text",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "client-token",
+              "value": "F09e6c885611540e2ba16ed8b733a1621S"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "=Olá! 👋\nBem-vindo(a) ao nosso espaço de informação cidadã. Aqui você vai receber conteúdos simples e diretos para entender melhor leis, votações, propostas no Congresso e tudo que pode impactar o seu dia a dia.\nNossa missão é facilitar o acesso à informação e deixar você sempre por dentro do que realmente importa. Vamos juntos?"
+            },
+            {
+              "name": "phone",
+              "value": "={{ $('Webhook').item.json.body.phone }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        496,
+        -288
+      ],
+      "id": "36ec15de-092a-463d-8b2a-6fb74a29c7bd",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "eb272c5b-8f18-43dc-92ae-fc028b2e8b3f",
+              "leftValue": "={{ $('Message a model1').item.json.output[0].content[0].text }}",
+              "rightValue": "duvida lei",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        112,
+        48
+      ],
+      "id": "9f1a9978-2629-4eac-8d68-1453033cd1f9",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.z-api.io/instances/3EA907A8167551B470100A71BB431498/token/9592D50F61CB437C47FD4B62/send-text",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "client-token",
+              "value": "F09e6c885611540e2ba16ed8b733a1621S"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "={{ $json.output[0].content[0].text }}"
+            },
+            {
+              "name": "phone",
+              "value": "={{ $('Webhook').item.json.body.phone }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        752,
+        336
+      ],
+      "id": "518d5f60-2fd8-43ab-ba45-d9a8182d78f6",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "=x-ai/grok-4.1-fast:free",
+          "mode": "id"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Pesquise na internet como o deputado especificado votou na pauta mencionada daqui {{ $('Capturar Termo de Busca').item.json.searchTerm }} . Use fontes confiáveis como sites oficiais da Câmara dos Deputados, relatórios de votação, portais de transparência e notícias verificadas. Identifique claramente o nome do deputado, o projeto/lei/PEC votado e o resultado do voto (sim, não, abstenção, obstrução ou ausência). Resuma a informação encontrada de forma objetiva, indicando a fonte utilizada e destacando eventuais divergências entre portais. Responda apenas com o voto final e a referência de onde foi encontrado."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2,
+      "position": [
+        496,
+        368
+      ],
+      "id": "2c41ffd8-8463-46e6-a79f-2d3deb3b41d6",
+      "name": "Message a model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "CA46JYXOBiMmVk1j",
+          "name": "OpenAi account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Capturar Termo de Busca": {
+      "main": [
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Item Lists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Item Lists": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Capturar Termo de Busca",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Message a model2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d0b7735c-8c17-4758-bcda-a4d4360a59b1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c26b865d2115341a49e08d910d4ded3f46d3056a5c137d810544639d5be301a8"
+  },
+  "id": "6kIMPPX1wbSzdpcz",
+  "tags": []
+}
