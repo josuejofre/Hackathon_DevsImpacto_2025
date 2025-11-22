@@ -1,4 +1,4 @@
-# 📊 Banco de Dados Legislativo 2024
+# 📊 Banco de Dados Legis-AI
 
 Este projeto coleta e armazena proposições legislativas (PL, PEC, MPV) de 2024 diretamente no PostgreSQL, extraindo dados da API da Câmara dos Deputados e trechos dos PDFs das proposições.
 
