@@ -1,4 +1,4 @@
-# Zap da Cidadania: Assessor Legislativo via WhatsApp
+# 🇧🇷 Zap da Cidadania: Assessor Legislativo via WhatsApp
 
 O Zap da Cidadania é um assistente de inteligência artificial via WhatsApp projetado para **democratizar o acesso à informação legislativa**. Nossa solução traduz a linguagem complexa das leis em termos simples, fornecendo ao cidadão ferramentas essenciais para compreensão, fiscalização e participação política ativa.
 
@@ -26,7 +26,7 @@ O projeto é construído em torno de um *workflow* de automação robusto que co
 | **Gatilho/Comunicação** | Z-API | Recebe as mensagens e envia as respostas via WhatsApp. |
 | **Automação/Workflow** | n8n | Orquestra o fluxo de dados (Webhook -> Busca de Dados -> Processamento IA -> Envio). |
 | **Inteligência** | OpenAI (GPT-4o) | Traduz o texto complexo das leis e votações para linguagem simples. |
-| **Dados** | Python / API Pública Legislativa | Script para buscar e estruturar dados do Legislativo Federal (Projetos de Lei, Votações, etc.). |
+| **Dados** | Python / APIs Públicas | Scripts para buscar e estruturar dados do Poder Executivo e Legislativo. |
 
 ---
 
@@ -36,35 +36,42 @@ Para colocar o Zap da Cidadania em funcionamento, você precisará configurar o 
 
 ### 1. Configuração do Workflow (n8n)
 
-O coração do projeto é o arquivo `.json` do n8n, que contém toda a lógica do *workflow* (Webhook, Google Sheets, OpenAI e Z-API).
+O coração do projeto é o arquivo `.json` do n8n, que contém toda a lógica do *workflow*.
 
-#### A. Importando o Arquivo `.json`
-
-1.  Acesse sua instância do n8n (local ou cloud).
-2.  No painel principal, clique em **"New"** (Novo) e depois em **"Import from JSON"** (Importar de JSON).
-3.  Carregue o arquivo do *workflow* (`zap_da_cidadania_workflow.json` – nome de exemplo).
-4.  O *workflow* será carregado, mas exigirá a configuração das credenciais.
-
-#### B. Credenciais Essenciais
-
-Antes de ativar o *workflow*, você deve configurar:
-
-| Credencial | Nó | Descrição |
-| :--- | :--- | :--- |
-| **API Key OpenAI** | `Message a model` | Chave de acesso à API do GPT. |
-| **ID da Instância** | `HTTP Request` (Z-API) | ID fornecido pelo seu painel Z-API. |
-| **Token de Integração** | `HTTP Request` (Z-API) | Token fornecido pelo seu painel Z-API (incluído na URL ou Headers). |
-| **Webhook URL** | `Webhook` | A URL gerada deve ser copiada e configurada no painel **Z-API** (seção "Ao receber"). |
+* **Ação:** Siga os passos para **Importar o arquivo .json** do *workflow* e configure as credenciais essenciais (OpenAI Key, ID e Token do Z-API) conforme as instruções do seu painel.
 
 ---
 
-### 2. Preparando os Dados (Python Script)
+### 2. Preparando os Dados (Python Scripts)
 
-O script Python é responsável por coletar dados das APIs públicas do Legislativo e alimentar o banco de dados usado pelo n8n.
+Os scripts Python são a fonte de dados do projeto, buscando informações em três APIs diferentes:
 
-#### A. Estrutura do Script Python
+#### A. Governo Federal (Portal da Transparência)
 
-Assumindo que o script se chama `fetch_data.py`, a estrutura de execução é a seguinte:
+* **API:** [https://api.portaldatransparencia.gov.br/swagger-ui/index.html](https://api.portaldatransparencia.gov.br/swagger-ui/index.html)
+* **Script de Chamada:** `importrequestsServidores.py`
+
+⚠️ **Atenção:** Para acessar esta API, é **obrigatório** alterar o *token* de autenticação dentro do script `importrequestsServidores.py` com a chave que você obtiver no portal.
+
+#### B. Câmara dos Deputados
+
+* **API:** [https://dadosabertos.camara.leg.br](https://dadosabertos.camara.leg.br)
+* **Script de Chamada:** `importrequestsCamara.py`
+* **Função:** Puxa dados de Proposições, Votações, e Deputados.
+
+#### C. Senado Federal
+
+* **API:** [https://legis.senado.leg.br/dadosabertos](https://legis.senado.leg.br/dadosabertos)
+* **Script de Chamada:** `importrequestsSenado.py`
+* **Função:** Puxa dados de Matérias Legislativas e Senadores.
+
+#### Como Chamar os Scripts
+
+Os scripts devem ser executados periodicamente (via Cron Job ou n8n) para manter a base de dados atualizada:
 
 ```bash
-python fetch_data.py [PARAMETROS]
+# Exemplo de chamada para atualizar os dados da Câmara
+python importrequestsCamara.py [PARAMETROS]
+
+# Exemplo de chamada para atualizar os dados do Senado
+python importrequestsSenado.py [PARAMETROS]
