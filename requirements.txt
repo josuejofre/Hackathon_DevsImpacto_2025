@@ -1,7 +1,11 @@
 # Dependências para coleta de dados legislativos
 # Instale com: pip install -r requirements.txt
 
-requests==2.32.0
-pdfplumber==0.11.0
-psycopg2-binary==2.9.9
-urllib3==2.2.2
+Flask==2.3.3
+psycopg==3.1.18
+pywhatkit==5.4
+transformers==4.35.2
+torch>=2.1.0
+sentencepiece==0.1.99
+accelerate==0.24.1
+requests==2.31.0
